@@ -10,11 +10,12 @@ BEGE = "#ece6e0"
 
 st.set_page_config(page_title="Conexa - Avaliação DISC", page_icon="📈", layout="centered")
 
-# --- ESTILO VISUAL ---
+# --- ESTILO VISUAL (CLEAN & PROFISSIONAL) ---
 st.markdown(f"""
     <style>
     .stApp {{ background-color: {BEGE}; }}
     h1 {{ color: {VINHO}; font-family: 'Arial'; text-align: center; font-weight: bold; }}
+    h3 {{ color: {VINHO}; font-family: 'Arial'; }}
     .stButton>button {{ 
         background-color: {LARANJA}; color: white; border-radius: 10px; 
         width: 100%; border: none; padding: 15px; font-weight: bold; font-size: 18px;
@@ -46,14 +47,14 @@ if not st.session_state.logado:
 
 # --- INTRODUÇÃO ---
 st.markdown(f"<h1 style='color:{LARANJA};'>CONEXA</h1>", unsafe_allow_html=True)
-st.markdown("<p style='text-align: center; font-size: 20px;'>Transformação e Desenvolvimento</p>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center; font-size: 20px; color:#800020; font-weight:bold;'>Transformação e Desenvolvimento</p>", unsafe_allow_html=True)
 
 st.markdown(f"""
 <div class="instrucoes">
     <strong>Bem-vinda à sua jornada de autoconhecimento!</strong><br><br>
     Este teste identifica como você se comporta e reage a diferentes situações. 
     Lembre-se: <strong>não existe resposta certa ou errada</strong>. <br><br>
-    O propósito é entender seu estilo único para <strong>potencializar seus resultados</strong>.
+    O propósito é entender seu estilo único para <strong>potencializar seus resultados</strong> e sua liderança.
     <br><br>
     <strong>Como responder:</strong><br>
     Em cada linha, atribua notas de 1 a 4:<br>
@@ -67,58 +68,62 @@ st.markdown(f"""
 with st.container():
     st.markdown("### 📋 Seus Dados")
     nome = st.text_input("Nome Completo")
-    whats = st.text_input("WhatsApp")
-    empresa = st.text_input("Empresa/Cargo")
+    whats = st.text_input("WhatsApp (com DDD)")
+    empresa = st.text_input("Empresa ou Cargo")
 
-# --- PERGUNTAS SIMPLIFICADAS ---
-# Mapeamento interno: D, I, S, C
+# --- MAPEAMENTO DISC ---
+# Ordem das colunas: Dominância (D), Influência (I), Estabilidade (S), Conformidade (C)
 mapa_letras = ["D", "I", "S", "C"]
 
+# PALAVRAS DO BLOCO 1 (COMO EU AJO)
 grupo1 = [
     ["Direta e Decidida", "Comunicativa e Influente", "Calma e Acolhedora", "Analítica e Observadora"],
-    ["Focada em Resultados", "Focada em Pessoas", "Focada em Apoiar o Time", "Focada em Processos/Regras"],
+    ["Focada em Resultados", "Focada em Pessoas", "Focada em Apoiar o Time", "Focada em Processos e Regras"],
     ["Gosta de Desafios", "Gosta de Novidades", "Gosta de Harmonia", "Gosta de Lógica e Fatos"],
     ["Em conflito: Enfrenta", "Em conflito: Persuade", "Em conflito: Cede", "Em conflito: Analisa"]
 ]
 
+# PALAVRAS DO BLOCO 2 (COMO AS PESSOAS ME VEEM)
 grupo2 = [
-    ["Independente", "Sociável/Interativa", "Paciente/Estável", "Precisa/Correta"],
-    ["Intensa", "Entusiasta", "Apoio/Escuta", "Cuidadosa"],
+    ["Independente e Firme", "Sociável e Interativa", "Estável e Paciente", "Precisa e Correta"],
+    ["Pessoa Intensa", "Pessoa Entusiasta", "Pessoa Acolhedora", "Pessoa Cuidadosa"],
     ["Assume Riscos", "Busca Reconhecimento", "Busca Segurança", "Busca Qualidade"],
     ["Decisões Rápidas", "Decisões Emocionais", "Decisões Pensadas", "Decisões Técnicas"]
 ]
 
 def render_bloco(titulo, perguntas, chave):
-    st.markdown(f"### {titulo}")
+    st.markdown(f"<h3>{titulo}</h3>", unsafe_allow_html=True)
     res = {}
     for i, labels in enumerate(perguntas):
-        st.write(f"**Linha {i+1}:**")
+        st.write(f"**Grupo {i+1}:**")
         cols = st.columns(4)
         notas = []
         for j, texto in enumerate(labels):
             n = cols[j].number_input(texto, 1, 4, 1, key=f"{chave}_{i}_{j}")
             notas.append(n)
         if len(set(notas)) < 4:
-            st.warning("⚠️ Use 1, 2, 3 e 4 sem repetir.")
+            st.warning("⚠️ Atenção: Não repita números nesta linha. Use 1, 2, 3 e 4.")
         res[f"L{i}"] = notas
     return res
 
-res1 = render_bloco("🏢 Bloco 1: Estilo de Trabalho", grupo1, "b1")
-res2 = render_bloco("🌟 Bloco 2: Percepção Pessoal", grupo2, "b2")
+# Renderizar os dois blocos
+res1 = render_bloco("🏢 Bloco 1: Como eu ajo (Estilo de Trabalho)", grupo1, "b1")
+st.markdown("---")
+res2 = render_bloco("🌟 Bloco 2: Como eu acho que as pessoas me veem", grupo2, "b2")
 
-# --- ENVIO ---
-if st.button("ENVIAR AVALIAÇÃO"):
+# --- PROCESSAMENTO E ENVIO ---
+if st.button("FINALIZAR E ENVIAR AVALIAÇÃO"):
     if not nome or not whats:
-        st.error("Preencha seu nome e WhatsApp.")
+        st.error("Por favor, preencha seu nome e WhatsApp antes de enviar.")
     else:
-        # Calcular
+        # Calcular Pontuação Total
         pontos = {"D": 0, "I": 0, "S": 0, "C": 0}
         for bloco in [res1, res2]:
             for linha in bloco.values():
                 for idx, nota in enumerate(linha):
                     pontos[mapa_letras[idx]] += nota
         
-        # E-mail
+        # Envio de E-mail
         try:
             u = st.secrets["EMAIL_USER"]
             p = st.secrets["EMAIL_PASSWORD"]
@@ -129,22 +134,37 @@ if st.button("ENVIAR AVALIAÇÃO"):
             corpo = f"""
             TESTE REALIZADO - CONEXA
             ----------------------------
+            DADOS DO CLIENTE:
             Nome: {nome}
             WhatsApp: {whats}
             Empresa: {empresa}
             
-            PONTUAÇÃO CALCULADA:
+            PONTUAÇÃO CALCULADA (SOMA DOS 2 BLOCOS):
             Dominância (D): {pontos['D']}
             Influência (I): {pontos['I']}
             Estabilidade (S): {pontos['S']}
             Conformidade (C): {pontos['C']}
+            
             ----------------------------
+            Analise esses dados na sua planilha para o laudo final.
             """
             msg.attach(MIMEText(corpo, 'plain'))
-            s = smtplib.SMTP('smtp.gmail.com', 587); s.starttls(); s.login(u, p); s.send_message(msg); s.quit()
+            
+            # Conexão Gmail
+            server = smtplib.SMTP('smtp.gmail.com', 587)
+            server.starttls()
+            server.login(u, p)
+            server.send_message(msg)
+            server.quit()
             
             st.balloons()
             st.success("✅ Avaliação enviada com sucesso!")
-            st.markdown(f"<div style='text-align:center; background:white; padding:20px; border-radius:15px; border:2px solid {LARANJA};'><h3>Obrigada por participar, {nome}!</h3><p>Seus dados foram enviados para a <b>Conexa</b> e em breve entraremos em contato.</p></div>", unsafe_allow_html=True)
-        except:
-            st.error("Erro no envio. Verifique a internet.")
+            st.markdown(f"""
+                <div style='text-align:center; background:white; padding:30px; border-radius:15px; border:2px solid {LARANJA};'>
+                    <h2 style='color: {LARANJA};'>Obrigada por participar, {nome}!</h2>
+                    <p style='color: #800020; font-size: 18px;'>Suas respostas foram enviadas para análise profissional da <b>Conexa</b>.</p>
+                    <p>Em breve entraremos em contato para compartilhar seus resultados.</p>
+                </div>
+            """, unsafe_allow_html=True)
+        except Exception as e:
+            st.error("Erro no envio. Verifique sua conexão ou as configurações de e-mail.")
