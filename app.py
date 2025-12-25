@@ -125,32 +125,16 @@ if st.button("FINALIZAR E ENVIAR AVALIAÇÃO"):
         
         # Envio de E-mail
         try:
+            # Tenta ler os segredos
             u = st.secrets["EMAIL_USER"]
             p = st.secrets["EMAIL_PASSWORD"]
             d = st.secrets["CONSULTANT_EMAIL"]
             
             msg = MIMEMultipart()
             msg['Subject'] = f"AVALIAÇÃO DISC CONEXA: {nome}"
-            corpo = f"""
-            TESTE REALIZADO - CONEXA
-            ----------------------------
-            DADOS DO CLIENTE:
-            Nome: {nome}
-            WhatsApp: {whats}
-            Empresa: {empresa}
-            
-            PONTUAÇÃO CALCULADA (SOMA DOS 2 BLOCOS):
-            Dominância (D): {pontos['D']}
-            Influência (I): {pontos['I']}
-            Estabilidade (S): {pontos['S']}
-            Conformidade (C): {pontos['C']}
-            
-            ----------------------------
-            Analise esses dados na sua planilha para o laudo final.
-            """
+            corpo = f"TESTE CONEXA\nNome: {nome}\nWhatsApp: {whats}\nD:{pontos['D']} I:{pontos['I']} S:{pontos['S']} C:{pontos['C']}"
             msg.attach(MIMEText(corpo, 'plain'))
             
-            # Conexão Gmail
             server = smtplib.SMTP('smtp.gmail.com', 587)
             server.starttls()
             server.login(u, p)
@@ -159,12 +143,7 @@ if st.button("FINALIZAR E ENVIAR AVALIAÇÃO"):
             
             st.balloons()
             st.success("✅ Avaliação enviada com sucesso!")
-            st.markdown(f"""
-                <div style='text-align:center; background:white; padding:30px; border-radius:15px; border:2px solid {LARANJA};'>
-                    <h2 style='color: {LARANJA};'>Obrigada por participar, {nome}!</h2>
-                    <p style='color: #800020; font-size: 18px;'>Suas respostas foram enviadas para análise profissional da <b>Conexa</b>.</p>
-                    <p>Em breve entraremos em contato para compartilhar seus resultados.</p>
-                </div>
-            """, unsafe_allow_html=True)
         except Exception as e:
-            st.error("Erro no envio. Verifique sua conexão ou as configurações de e-mail.")
+            # ISSO VAI MOSTRAR O ERRO REAL NA TELA
+            st.error(f"Ocorreu um erro técnico: {e}")
+            st.info("Verifique se a senha de 16 letras no Secrets está correta e sem espaços.")
